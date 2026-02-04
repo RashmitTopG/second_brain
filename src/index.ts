@@ -5,6 +5,7 @@ import express from "express";
 import mongoose from "mongoose";
 import bcrypt, { hash } from "bcrypt";
 import jwt from "jsonwebtoken";
+import cors from "cors";
 
 /* ================== ENV VARIABLES ================== */
 const PORT = Number(process.env.PORT) || 3000;
@@ -24,6 +25,8 @@ import { random } from "./utils";
 /* ================== APP SETUP ================== */
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors())
 
 /* ================== AUTH ROUTES ================== */
 app.post("/api/v1/signin", async (req, res) => {
@@ -178,6 +181,26 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
     });
   }
 });
+
+app.get("/api/v1/content", userMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const type = req.query.type; // youtube | twitter | notion | pdf
+
+    const filter: any = { userId };
+
+    if (type) {
+      filter.type = type;
+    }
+
+    const content = await contentModel.find(filter);
+
+    return res.status(200).json({ content });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 /* ================== BRAIN SHARE ROUTES ================== */
 app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
