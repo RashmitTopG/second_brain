@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 
 /* ================== ENV VARIABLES ================== */
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 3001;
 const DB_URL = process.env.DB_URL;
 const JWT_SECRET = process.env.JWT_SECRET;
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
