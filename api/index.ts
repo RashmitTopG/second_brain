@@ -32,19 +32,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // allow server-to-server & tools like curl/postman
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "http://localhost:5173",
+      "https://second-brain-frontend-smoky.vercel.app"
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
 
+// VERY IMPORTANT
+app.options("*", cors());
 
 /* ================== AUTH ROUTES ================== */
 app.post("/api/v1/signin", async (req, res) => {
