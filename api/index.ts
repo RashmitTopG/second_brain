@@ -3,7 +3,7 @@ dotenv.config();
 
 import express from "express";
 import mongoose from "mongoose";
-import bcrypt, { hash } from "bcrypt";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 
@@ -12,6 +12,10 @@ const PORT = Number(process.env.PORT) || 3001;
 const DB_URL = process.env.DB_URL;
 const JWT_SECRET = process.env.JWT_SECRET;
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
+
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173"
+
+const allowedOrigins = [`${process.env.FRONTEND_URL}` ,"http://localhost:5173"]
 
 if (!DB_URL || !JWT_SECRET || !SALT_ROUNDS) {
   throw new Error("Missing required environment variables");
@@ -26,7 +30,21 @@ import { random } from "./utils";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors())
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow server-to-server & tools like curl/postman
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  })
+);
+
 
 /* ================== AUTH ROUTES ================== */
 app.post("/api/v1/signin", async (req, res) => {
@@ -182,26 +200,6 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
   }
 });
 
-app.get("/api/v1/content", userMiddleware, async (req, res) => {
-  try {
-    const userId = req.userId;
-    const type = req.query.type; // youtube | twitter | notion | pdf
-
-    const filter: any = { userId };
-
-    if (type) {
-      filter.type = type;
-    }
-
-    const content = await contentModel.find(filter);
-
-    return res.status(200).json({ content });
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-
 /* ================== BRAIN SHARE ROUTES ================== */
 app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
   try {
@@ -252,7 +250,7 @@ app.get("/api/v1/brain/:shareLink", async (req, res) => {
   try {
     const { shareLink } = req.params;
 
-    const entry = await linkModel.findOne({ hash: shareLink });
+    const entry = await linkModel.findOne({ hash: shareLink }).populate("userId" , "username");
 
     if (!entry) {
       return res.status(404).json({
@@ -267,6 +265,7 @@ app.get("/api/v1/brain/:shareLink", async (req, res) => {
     return res.status(200).json({
       message: "Data fetched successfully",
       content,
+      entry
     });
   } catch (error) {
     console.error("Shared brain fetch error:", error);
@@ -282,6 +281,8 @@ const start = async () => {
     await mongoose.connect(DB_URL);
     app.listen(PORT, () => {
       console.log(`Server running on PORT ${PORT}`);
+      console.log(frontendUrl);
+      console.log(allowedOrigins)
     });
   } catch (error) {
     console.error("Server failed to start:", error);
