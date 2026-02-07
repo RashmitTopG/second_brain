@@ -15,7 +15,7 @@ const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
 
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173"
 
-const allowedOrigins = [`${process.env.FRONTEND_URL}` ,"http://localhost:5173"]
+const allowedOrigins = [`${process.env.FRONTEND_URL}`, "http://localhost:5173"]
 
 if (!DB_URL || !JWT_SECRET || !SALT_ROUNDS) {
   throw new Error("Missing required environment variables");
@@ -44,7 +44,7 @@ app.use(
 );
 
 // FIXED: catch all preflight requests
-app.options("(.*)", cors());
+app.options("/:any*", cors());
 
 /* ================== AUTH ROUTES ================== */
 app.post("/api/v1/signin", async (req, res) => {
@@ -130,7 +130,7 @@ app.post("/api/v1/signup", async (req, res) => {
 /* ================== CONTENT ROUTES ================== */
 app.post("/api/v1/content", userMiddleware, async (req, res) => {
   try {
-    const { title , link, type } = req.body;
+    const { title, link, type } = req.body;
 
     await contentModel.create({
       type,
@@ -225,7 +225,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
       });
     }
 
-   
+
     const hash = random(10);
 
     await linkModel.create({
@@ -250,7 +250,7 @@ app.get("/api/v1/brain/:shareLink", async (req, res) => {
   try {
     const { shareLink } = req.params;
 
-    const entry = await linkModel.findOne({ hash: shareLink }).populate("userId" , "username");
+    const entry = await linkModel.findOne({ hash: shareLink }).populate("userId", "username");
 
     if (!entry) {
       return res.status(404).json({
