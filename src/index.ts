@@ -30,6 +30,7 @@ import { random } from "./utils";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(
   cors({
     origin: [
@@ -42,8 +43,8 @@ app.use(
   })
 );
 
-// VERY IMPORTANT
-app.options("*", cors());
+// FIXED: catch all preflight requests
+app.options("/*", cors());
 
 /* ================== AUTH ROUTES ================== */
 app.post("/api/v1/signin", async (req, res) => {
