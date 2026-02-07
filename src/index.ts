@@ -44,7 +44,7 @@ app.use(
 );
 
 // FIXED: catch all preflight requests
-app.options("/*", cors());
+app.options("(.*)", cors());
 
 /* ================== AUTH ROUTES ================== */
 app.post("/api/v1/signin", async (req, res) => {
